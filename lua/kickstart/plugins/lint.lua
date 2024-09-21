@@ -7,6 +7,8 @@ return {
       local lint = require 'lint'
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
+        python = { 'pylint' },
+        -- python = { 'pylint', 'mypy' },
       }
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
@@ -50,6 +52,9 @@ return {
           require('lint').try_lint()
         end,
       })
+      vim.keymap.set('n', '<leader>l', function()
+        require('lint').try_lint()
+      end, { desc = '[L]int the current file' })
     end,
   },
 }

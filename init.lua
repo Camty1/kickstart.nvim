@@ -196,6 +196,11 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- Custom Keybinds
 vim.keymap.set('i', 'jj', '<Esc>')
 
+-- Custom tabs
+vim.opt.tabstop = 8 -- Always 8 (see :h tabstop)
+vim.opt.softtabstop = 4 -- What you expecting
+vim.opt.shiftwidth = 4
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -653,7 +658,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        python = { 'black' },
+        python = { 'black', 'isort' },
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
@@ -868,7 +873,7 @@ require('lazy').setup({
   --
   -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.lint',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
