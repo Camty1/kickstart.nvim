@@ -198,6 +198,7 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 
 -- Custom Keybinds
 vim.keymap.set('i', 'jj', '<Esc>')
+vim.keymap.set('n', '<leader>p', ':!open_in_stash.py -p %:p<CR>', { desc = 'Get the link to open the current file in stash.' })
 
 -- Custom tabs
 vim.opt.tabstop = 8 -- Always 8 (see :h tabstop)
@@ -974,7 +975,7 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   require 'kickstart.plugins.debug',
-  require 'kickstart.plugins.indent_line',
+  -- require 'kickstart.plugins.indent_line',
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
