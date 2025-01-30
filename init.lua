@@ -199,6 +199,7 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- Custom Keybinds
 vim.keymap.set('i', 'jj', '<Esc>')
 vim.keymap.set('n', '<leader>p', ':!open_in_stash.py -p %:p<CR>', { desc = 'Get the link to open the current file in stash.' })
+vim.keymap.set('n', '<leader>ch', ':ClangdSwitchSourceHeader<CR>', { desc = 'Switch between the .h and .cc file.' })
 
 -- Custom tabs
 vim.opt.tabstop = 8 -- Always 8 (see :h tabstop)
@@ -641,14 +642,14 @@ require('lazy').setup({
       })
 
       -- Change diagnostic symbols in the sign column (gutter)
-      -- if vim.g.have_nerd_font then
-      --   local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
-      --   local diagnostic_signs = {}
-      --   for type, icon in pairs(signs) do
-      --     diagnostic_signs[vim.diagnostic.severity[type]] = icon
-      --   end
-      --   vim.diagnostic.config { signs = { text = diagnostic_signs } }
-      -- end
+      if vim.g.have_nerd_font then
+        local signs = { ERROR = '', WARN = '', INFO = '', HINT = '' }
+        local diagnostic_signs = {}
+        for type, icon in pairs(signs) do
+          diagnostic_signs[vim.diagnostic.severity[type]] = icon
+        end
+        vim.diagnostic.config { signs = { text = diagnostic_signs } }
+      end
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -667,7 +668,10 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = {
+          cmd = { "clangd", "--background-index"},
+          capabilities = require('cmp_nvim_lsp').default_capabilities(),
+        },
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -757,6 +761,7 @@ require('lazy').setup({
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
         python = { 'black', 'isort' },
+        cpp = { 'clangformat' }
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
