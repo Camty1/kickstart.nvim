@@ -669,8 +669,11 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {
-          cmd = { "clangd", "--background-index"},
+          cmd = { 'clangd', '--background-index' },
           capabilities = require('cmp_nvim_lsp').default_capabilities(),
+        },
+        jinja_lsp = {
+          filetypes = {"j2_satellite_rev"}
         },
         -- gopls = {},
         -- pyright = {},
@@ -713,6 +716,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'black',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -761,7 +765,7 @@ require('lazy').setup({
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
         python = { 'black', 'isort' },
-        cpp = { 'clangformat' }
+        cpp = { 'clangformat' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
