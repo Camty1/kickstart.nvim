@@ -198,8 +198,58 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 
 -- Custom Keybinds
 vim.keymap.set('i', 'jj', '<Esc>')
-vim.keymap.set('n', '<leader>p', ':!open_in_stash.py -p %:p<CR>', { desc = 'Get the link to open the current file in stash.' })
 vim.keymap.set('n', '<leader>ch', ':ClangdSwitchSourceHeader<CR>', { desc = 'Switch between the .h and .cc file.' })
+
+local function toggle_alg()
+  local current_file_path = vim.api.nvim_buf_get_name(0)
+  local current_file_name = current_file_path:match '([^\\/]+)$'
+  local current_file_extension = current_file_name:match '%.(.+)$'
+  local desired_file_path
+  if current_file_extension == 'alg' then
+    desired_file_path = string.gsub(current_file_path, 'alg$', 'cc')
+  elseif current_file_extension == 'cc' then
+    desired_file_path = string.gsub(current_file_path, 'cc$', 'alg')
+  elseif current_file_extension == 'h' then
+    desired_file_path = string.gsub(current_file_path, 'h$', 'alg')
+  else
+    print(current_file_path .. ' is not a valid file type: ' .. current_file_extension)
+    return
+  end
+  local f = io.open(desired_file_path, 'r')
+  if f ~= nil then
+    io.close(f)
+    print(desired_file_path)
+    vim.api.nvim_command('edit ' .. desired_file_path)
+  else
+    print(desired_file_path .. ' does not exist!')
+    return
+  end
+end
+
+vim.keymap.set('n', '<leader>ca', toggle_alg, { desc = 'Switch between the .alg and .cc (or .h if that is what you have open) file.' })
+
+vim.keymap.set('n', '<leader>p', ':!open_in_stash.py -p %:p<CR>', { desc = 'Get a link to open the current file in stash.' })
+
+local function stash_link_with_line()
+  local line = vim.fn.getpos('.')[2]
+  vim.api.nvim_command(string.format(':!open_in_stash.py -p %s -l %d', vim.api.nvim_buf_get_name(0), line))
+end
+vim.keymap.set('n', '<leader>P', stash_link_with_line, { desc = 'Get a link to open the current file at the given line in stash.' })
+
+vim.keymap.set('n', '<leader>tu', vim.cmd.UndotreeToggle, { desc = '[T]oggle [U]ndotree panel open/ closed.' })
+
+vim.keymap.set('t', 'jj', '<C-\\><C-N>')
+
+vim.keymap.set('n', '<leader>tt', '<cmd>ToggleTerm direction=tab<CR><cmd>set rnu<CR>', { desc = '[T]oggle [T]erminal open/ closed.' })
+vim.keymap.set('t', '<leader>tt', '<cmd>ToggleTerm direction=tab<CR>', { desc = '[T]oggle [T]erminal open/ closed.' })
+vim.keymap.set('n', '<leader>tt1', '<cmd>1ToggleTerm direction=tab<CR><cmd>set rnu<CR>', { desc = '[T]oggle [T]erminal [1] open/ closed.' })
+vim.keymap.set('t', '<leader>tt1', '<cmd>1ToggleTerm direction=tab<CR>', { desc = '[T]oggle [T]erminal [1] open/ closed.' })
+vim.keymap.set('n', '<leader>tt2', '<cmd>2ToggleTerm direction=tab<CR><cmd>set rnu<CR>', { desc = '[T]oggle [T]erminal [2] open/ closed.' })
+vim.keymap.set('t', '<leader>tt2', '<cmd>2ToggleTerm direction=tab<CR>', { desc = '[T]oggle [T]erminal [2] open/ closed.' })
+vim.keymap.set('n', '<leader>tt3', '<cmd>3ToggleTerm direction=tab<CR><cmd>set rnu<CR>', { desc = '[T]oggle [T]erminal [3] open/ closed.' })
+vim.keymap.set('t', '<leader>tt3', '<cmd>3ToggleTerm direction=tab<CR>', { desc = '[T]oggle [T]erminal [3] open/ closed.' })
+vim.keymap.set('n', '<leader>tt4', '<cmd>4ToggleTerm direction=tab<CR><cmd>set rnu<CR>', { desc = '[T]oggle [T]erminal [4] open/ closed.' })
+vim.keymap.set('t', '<leader>tt4', '<cmd>4ToggleTerm direction=tab<CR>', { desc = '[T]oggle [T]erminal [4] open/ closed.' })
 
 -- Custom tabs
 vim.opt.tabstop = 8 -- Always 8 (see :h tabstop)
@@ -359,6 +409,9 @@ require('lazy').setup({
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>n', group = '[N]avigate', mode = { 'n' } },
+        { '<leader>nr', group = '[R]emove', mode = { 'n' } },
+        { '<leader>ns', group = '[S]wap', mode = { 'n' } },
       },
     },
   },
@@ -480,9 +533,9 @@ require('lazy').setup({
       end, { desc = '[S]earch [/] in Open Files' })
 
       -- Shortcut for searching your Neovim configuration files
-      vim.keymap.set('n', '<leader>sn', function()
+      vim.keymap.set('n', '<leader>sc', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
-      end, { desc = '[S]earch [N]eovim files' })
+      end, { desc = '[S]earch Neovim [C]onfig files' })
     end,
   },
 
@@ -590,7 +643,7 @@ require('lazy').setup({
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+          map('<leader>cl', vim.lsp.buf.code_action, '[C]ode [L]SP action')
 
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap.
@@ -673,7 +726,7 @@ require('lazy').setup({
           capabilities = require('cmp_nvim_lsp').default_capabilities(),
         },
         jinja_lsp = {
-          filetypes = {"j2_satellite_rev"}
+          filetypes = { 'j2_satellite_rev' },
         },
         -- gopls = {},
         -- pyright = {},
@@ -717,6 +770,7 @@ require('lazy').setup({
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'black',
+        'prettier',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -769,6 +823,7 @@ require('lazy').setup({
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        yaml = { 'prettier' },
       },
     },
   },
@@ -994,7 +1049,7 @@ require('lazy').setup({
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
@@ -1062,6 +1117,14 @@ require('formatter').setup {
       end,
     },
 
+    yaml = {
+      require('formatter.filetypes.yaml').prettier,
+
+      function()
+        return { exe = 'prettier' }
+      end,
+    },
+
     -- Use the special "*" filetype for defining formatter configurations on
     -- any filetype
     ['*'] = {
@@ -1071,5 +1134,86 @@ require('formatter').setup {
     },
   },
 }
+
+local harpoon = require 'harpoon'
+
+harpoon:setup()
+
+-- Add and remove harpoon buffers
+vim.keymap.set('n', '<leader>na', function()
+  harpoon:list():add()
+end, { desc = '[N]avigate, [A]dd buffer to tracked buffers' })
+
+vim.keymap.set('n', '<leader>nrc', function()
+  print(vim.api.nvim_get_current_buf())
+  print(harpoon:list():get(1))
+  harpoon:list():remove(vim.api.nvim_get_current_buf())
+end, { desc = '[N]avigate, [R]emove [C]urrent buffer.' })
+
+for i = 1, 9 do
+  vim.keymap.set('n', '<leader>nr' .. tostring(i), function()
+    if i <= harpoon:list():length() then
+      harpoon:list():remove_at(i)
+    end
+  end, { desc = '[N]avigate, [R]emove buffer [' .. tostring(i) .. '].' })
+end
+
+vim.keymap.set('n', '<leader>nc', function()
+harpoon:list():clear()
+end, {desc='[N]avigate, [C]lear tracked buffers'})
+
+-- Swap harpoon buffers
+for i = 1, 9 do
+  for j = 1, 9 do
+    if i ~= j then
+      vim.keymap.set('n', '<leader>ns' .. tostring(i) .. tostring(j), function()
+        if math.max(i, j) <= harpoon:list():length() then
+          local tmp = harpoon:list():get(i)
+          harpoon:list():replace_at(i, harpoon:list():get(j))
+          harpoon:list():replace_at(j, tmp)
+        end
+      end, {desc='[N]avigate, [S]wap buffers ' .. tostring(i) .. ' and ' .. tostring(j) .. '.'})
+    end
+  end
+end
+
+-- Go between harpoon files
+for i = 1, 9 do
+  vim.keymap.set('n', '<leader>n' .. tostring(i), function()
+    harpoon:list():select(i)
+  end, { desc = '[N]avigate to file [' .. tostring(i) .. '].' })
+end
+
+-- Toggle previous & next buffers stored within Harpoon list
+vim.keymap.set('n', '<leader>np', function()
+  harpoon:list():prev()
+end, { desc = '[N]avigate to [P]revious stored buffer' })
+vim.keymap.set('n', '<leader>nn', function()
+  harpoon:list():next()
+end, { desc = '[N]avigate to [N]ext stored buffer' })
+
+-- basic harpoon telescope configuration
+local conf = require('telescope.config').values
+local function toggle_telescope(harpoon_files)
+  local file_paths = {}
+  for _, item in ipairs(harpoon_files.items) do
+    table.insert(file_paths, item.value)
+  end
+
+  require('telescope.pickers')
+    .new({}, {
+      prompt_title = 'Harpoon',
+      finder = require('telescope.finders').new_table {
+        results = file_paths,
+      },
+      previewer = conf.file_previewer {},
+      sorter = conf.generic_sorter {},
+    })
+    :find()
+end
+
+vim.keymap.set('n', '<leader>sn', function()
+  toggle_telescope(harpoon:list())
+end, { desc = '[S]earch har[p]oon window' })
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
