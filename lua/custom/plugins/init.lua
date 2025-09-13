@@ -13,5 +13,17 @@ return {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
     dependencies = { 'nvim-lua/plenary.nvim' },
+    config = {
+      settings = {
+        save_on_toggle = false,
+        sync_on_ui_close = false,
+        key = function()
+          local cwd = vim.loop.cwd()
+          local branch = vim.fn.system 'git branch --show-current 2> /dev/null | tr -d "\n"'
+          local key = branch .. cwd
+          return key
+        end,
+      },
+    },
   },
 }

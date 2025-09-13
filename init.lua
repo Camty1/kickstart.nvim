@@ -198,7 +198,7 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 
 -- Custom Keybinds
 vim.keymap.set('i', 'jj', '<Esc>')
-vim.keymap.set('n', '<leader>ch', ':ClangdSwitchSourceHeader<CR>', { desc = 'Switch between the .h and .cc file.' })
+-- vim.keymap.set('n', '<leader>ch', ':ClangdSwitchSourceHeader<CR>', { desc = 'Switch between the .h and .cc file.' })
 
 local function toggle_alg()
   local current_file_path = vim.api.nvim_buf_get_name(0)
@@ -226,7 +226,34 @@ local function toggle_alg()
   end
 end
 
+local function toggle_header()
+  local current_file_path = vim.api.nvim_buf_get_name(0)
+  local current_file_name = current_file_path:match '([^\\/]+)$'
+  local current_file_extension = current_file_name:match '%.(.+)$'
+  local desired_file_path
+  if current_file_extension == 'alg' then
+    desired_file_path = string.gsub(current_file_path, 'alg$', 'h')
+  elseif current_file_extension == 'cc' then
+    desired_file_path = string.gsub(current_file_path, 'cc$', 'h')
+  elseif current_file_extension == 'h' then
+    desired_file_path = string.gsub(current_file_path, 'h$', 'cc')
+  else
+    print(current_file_path .. ' is not a valid file type: ' .. current_file_extension)
+    return
+  end
+  local f = io.open(desired_file_path, 'r')
+  if f ~= nil then
+    io.close(f)
+    print(desired_file_path)
+    vim.api.nvim_command('edit ' .. desired_file_path)
+  else
+    print(desired_file_path .. ' does not exist!')
+    return
+  end
+end
+
 vim.keymap.set('n', '<leader>ca', toggle_alg, { desc = 'Switch between the .alg and .cc (or .h if that is what you have open) file.' })
+vim.keymap.set('n', '<leader>ch', toggle_header, { desc = 'Switch between the .cc and .h (or .alg if that is what you have open) file.' })
 
 vim.keymap.set('n', '<leader>p', ':!open_in_stash.py -p %:p<CR>', { desc = 'Get a link to open the current file in stash.' })
 
@@ -720,13 +747,16 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+      vim.filetype.add {
+        extension = { jinja = 'jina', j2_satellite_rev = 'jinja' },
+      }
       local servers = {
         clangd = {
           cmd = { 'clangd', '--background-index' },
           capabilities = require('cmp_nvim_lsp').default_capabilities(),
         },
         jinja_lsp = {
-          filetypes = { 'j2_satellite_rev' },
+          filetypes = { 'jinja' },
         },
         -- gopls = {},
         -- pyright = {},
@@ -1159,8 +1189,8 @@ for i = 1, 9 do
 end
 
 vim.keymap.set('n', '<leader>nc', function()
-harpoon:list():clear()
-end, {desc='[N]avigate, [C]lear tracked buffers'})
+  harpoon:list():clear()
+end, { desc = '[N]avigate, [C]lear tracked buffers' })
 
 -- Swap harpoon buffers
 for i = 1, 9 do
@@ -1172,7 +1202,7 @@ for i = 1, 9 do
           harpoon:list():replace_at(i, harpoon:list():get(j))
           harpoon:list():replace_at(j, tmp)
         end
-      end, {desc='[N]avigate, [S]wap buffers ' .. tostring(i) .. ' and ' .. tostring(j) .. '.'})
+      end, { desc = '[N]avigate, [S]wap buffers ' .. tostring(i) .. ' and ' .. tostring(j) .. '.' })
     end
   end
 end
