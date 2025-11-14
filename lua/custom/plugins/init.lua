@@ -16,11 +16,11 @@ return {
     config = {
       settings = {
         save_on_toggle = false,
-        sync_on_ui_close = false,
+        sync_on_ui_close = true,
         key = function()
           local cwd = vim.loop.cwd()
           local branch = vim.fn.system 'git branch --show-current 2> /dev/null | tr -d "\n"'
-          local key = branch .. cwd
+          local key = cwd .. '-' .. branch
           return key
         end,
       },
