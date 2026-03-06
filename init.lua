@@ -252,14 +252,41 @@ local function toggle_header()
   end
 end
 
+local function toggle_yaml()
+  local current_file_path = vim.api.nvim_buf_get_name(0)
+  local current_file_name = current_file_path:match '([^\\/]+)$'
+  local current_file_extension = current_file_name:match '%.(.+)$'
+  local desired_file_path
+  if current_file_extension == 'cc' then
+    desired_file_path = string.gsub(current_file_path, 'cc$', 'yaml')
+  elseif current_file_extension == 'yaml' then
+    desired_file_path = string.gsub(current_file_path, 'yaml$', 'cc')
+  elseif current_file_extension == 'h' then
+    desired_file_path = string.gsub(current_file_path, 'h$', 'yaml')
+  else
+    print(current_file_path .. ' is not a valid file type: ' .. current_file_extension)
+    return
+  end
+  local f = io.open(desired_file_path, 'r')
+  if f ~= nil then
+    io.close(f)
+    print(desired_file_path)
+    vim.api.nvim_command('edit ' .. desired_file_path)
+  else
+    print(desired_file_path .. ' does not exist!')
+    return
+  end
+end
+
 vim.keymap.set('n', '<leader>ca', toggle_alg, { desc = 'Switch between the .alg and .cc (or .h if that is what you have open) file.' })
+vim.keymap.set('n', '<leader>cy', toggle_yaml, { desc = 'Switch between the .yaml and .cc (or .h if that is what you have open) file.' })
 vim.keymap.set('n', '<leader>ch', toggle_header, { desc = 'Switch between the .cc and .h (or .alg if that is what you have open) file.' })
 
-vim.keymap.set('n', '<leader>p', ':!open_in_stash.py -p %:p<CR>', { desc = 'Get a link to open the current file in stash.' })
+vim.keymap.set('n', '<leader>p', ':!open_in_stash -p %:p<CR>', { desc = 'Get a link to open the current file in stash.' })
 
 local function stash_link_with_line()
   local line = vim.fn.getpos('.')[2]
-  vim.api.nvim_command(string.format(':!open_in_stash.py -p %s -l %d', vim.api.nvim_buf_get_name(0), line))
+  vim.api.nvim_command(string.format(':!open_in_stash -p %s -l %d', vim.api.nvim_buf_get_name(0), line))
 end
 vim.keymap.set('n', '<leader>P', stash_link_with_line, { desc = 'Get a link to open the current file at the given line in stash.' })
 
@@ -1166,8 +1193,19 @@ require('formatter').setup {
 }
 
 local harpoon = require 'harpoon'
-
 harpoon:setup()
+
+-- Used to remove an item at the index from the harpoon list and remove the empty space removing it creates
+local function remove_from_harpoon(idx)
+  local old_length = harpoon:list():length()
+  if 1 <= idx and idx <= old_length then
+    print('Removing "' .. harpoon:list():get(idx).value .. '" at index ' .. tostring(idx) .. ' from Harpoon file list.')
+    harpoon:list():remove_at(idx)
+    for j = idx + 1, old_length do
+      harpoon:list():replace_at(j - 1, harpoon:list():get(j))
+    end
+  end
+end
 
 -- Add and remove harpoon buffers
 vim.keymap.set('n', '<leader>na', function()
@@ -1175,16 +1213,24 @@ vim.keymap.set('n', '<leader>na', function()
 end, { desc = '[N]avigate, [A]dd buffer to tracked buffers' })
 
 vim.keymap.set('n', '<leader>nrc', function()
-  print(vim.api.nvim_get_current_buf())
-  print(harpoon:list():get(1))
-  harpoon:list():remove(vim.api.nvim_get_current_buf())
+  local buf = vim.api.nvim_get_current_buf()
+  local path = vim.api.nvim_buf_get_name(buf)
+  local cwd = vim.fn.getcwd() .. '/'
+  local name = path:gsub(cwd, '')
+  print(buf, path, cwd, name)
+  local idx = -1
+  for i = 1, harpoon:list():length() do
+    print(harpoon:list():get(i).value)
+    if harpoon:list():get(i).value == name then
+      idx = i
+    end
+  end
+  remove_from_harpoon(idx)
 end, { desc = '[N]avigate, [R]emove [C]urrent buffer.' })
 
 for i = 1, 9 do
   vim.keymap.set('n', '<leader>nr' .. tostring(i), function()
-    if i <= harpoon:list():length() then
-      harpoon:list():remove_at(i)
-    end
+    remove_from_harpoon(i)
   end, { desc = '[N]avigate, [R]emove buffer [' .. tostring(i) .. '].' })
 end
 

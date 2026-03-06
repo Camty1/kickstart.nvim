@@ -13,17 +13,17 @@ return {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
     dependencies = { 'nvim-lua/plenary.nvim' },
-    config = {
-      settings = {
-        save_on_toggle = false,
-        sync_on_ui_close = true,
-        key = function()
-          local cwd = vim.loop.cwd()
-          local branch = vim.fn.system 'git branch --show-current 2> /dev/null | tr -d "\n"'
-          local key = cwd .. '-' .. branch
-          return key
-        end,
-      },
-    },
+  },
+  {
+    'lervag/vimtex',
+    lazy = false, -- we don't want to lazy load VimTeX
+    -- tag = "v2.15", -- uncomment to pin to a specific release
+    init = function()
+      -- VimTeX configuration goes here, e.g.
+      vim.g.vimtex_view_method = 'zathura'
+    end,
+  },
+  {
+    'let-def/texpresso.vim',
   },
 }
