@@ -198,6 +198,7 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 
 -- Custom Keybinds
 vim.keymap.set('i', 'jj', '<Esc>')
+vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
 -- vim.keymap.set('n', '<leader>ch', ':ClangdSwitchSourceHeader<CR>', { desc = 'Switch between the .h and .cc file.' })
 
 local function toggle_alg()
@@ -876,7 +877,7 @@ require('lazy').setup({
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
         python = { 'black', 'isort' },
-        cpp = { 'clangformat' },
+        cpp = { 'clang-format' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
